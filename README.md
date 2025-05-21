@@ -1,7 +1,5 @@
 # Xylium GORM Connector (`xylium-gorm`)
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/arwahdevops/xylium-gorm.svg)](https://pkg.go.dev/github.com/arwahdevops/xylium-gorm)
-
 `xylium-gorm` is the official Xylium framework connector for seamless and productive integration with [GORM](https://gorm.io/), the fantastic ORM library for Go. This connector is designed to simplify the use of GORM within Xylium applications by providing:
 
 *   **Go Context Propagation:** Database operations automatically utilize the `context.Context` from your `xylium.Context`, enabling effective request timeouts and cancellations.
