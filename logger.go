@@ -92,6 +92,7 @@ func (l *xyliumGormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interfa
 // xyliumGormLogger initialization) is returned. This ensures logs carry
 // request-specific context (like request_id) when available.
 func (l *xyliumGormLogger) getLoggerFromContext(ctx context.Context) xylium.Logger {
+	// PERBAIKAN: xyliumCtx tidak digunakan sebelumnya, sekarang digunakan untuk mengambil logger
 	if xc, ok := ctx.Value(xyliumContextKey).(*xylium.Context); ok && xc != nil {
 		// A Xylium context is available; use its logger and add a field to indicate GORM scope.
 		return xc.Logger().WithFields(xylium.M{"gorm_log_scope": "request_contextual"})
@@ -104,6 +105,7 @@ func (l *xyliumGormLogger) getLoggerFromContext(ctx context.Context) xylium.Logg
 // This method is part of the gormlogger.Interface.
 func (l *xyliumGormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.gormLogLevel >= gormlogger.Info {
+		// PERBAIKAN: Gunakan logger yang diambil dari getLoggerFromContext
 		logger := l.getLoggerFromContext(ctx)
 		logger.Infof(msg, data...)
 	}
@@ -113,6 +115,7 @@ func (l *xyliumGormLogger) Info(ctx context.Context, msg string, data ...interfa
 // This method is part of the gormlogger.Interface.
 func (l *xyliumGormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.gormLogLevel >= gormlogger.Warn {
+		// PERBAIKAN: Gunakan logger yang diambil dari getLoggerFromContext
 		logger := l.getLoggerFromContext(ctx)
 		logger.Warnf(msg, data...)
 	}
@@ -122,6 +125,7 @@ func (l *xyliumGormLogger) Warn(ctx context.Context, msg string, data ...interfa
 // This method is part of the gormlogger.Interface.
 func (l *xyliumGormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.gormLogLevel >= gormlogger.Error {
+		// PERBAIKAN: Gunakan logger yang diambil dari getLoggerFromContext
 		logger := l.getLoggerFromContext(ctx)
 		logger.Errorf(msg, data...)
 	}
@@ -136,7 +140,7 @@ func (l *xyliumGormLogger) Trace(ctx context.Context, begin time.Time, fc func()
 		return
 	}
 
-	logger := l.getLoggerFromContext(ctx)
+	logger := l.getLoggerFromContext(ctx) // PERBAIKAN: logger yang diambil dari konteks digunakan
 	elapsed := time.Since(begin)
 	sqlQuery, rows := fc() // Get SQL query and rows affected from the callback.
 

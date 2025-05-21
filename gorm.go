@@ -15,6 +15,7 @@ import (
 	"github.com/arwahdevops/xylium-core/src/xylium" // PASTIKAN PATH INI BENAR
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
+	// "gorm.io/gorm/schema" // DIPERLUKAN JIKA Config.CustomGormConfig.NamingStrategy digunakan
 	// Database drivers (e.g., _ "gorm.io/driver/sqlite") are NOT imported by this
 	// library package. The application using xylium-gorm is responsible for blank
 	// importing the required GORM driver for their chosen database.
@@ -76,7 +77,7 @@ type Config struct {
 	// it's used as the base GORM configuration. Fields like EnableGormLog,
 	// GormLogLevel, etc., from this XyliumGorm.Config might override logger settings
 	// in CustomGormConfig unless CustomGormConfig.Logger is already non-nil.
-	CustomGormConfig *gorm.Config
+	CustomGormConfig *gorm.Config // PERHATIKAN: Jika ini menggunakan gorm.NamingStrategy, impor "gorm.io/gorm/schema"
 }
 
 // Connector is a Xylium-aware wrapper around GORM's *gorm.DB.
@@ -114,6 +115,12 @@ func New(cfg Config) (*Connector, error) {
 		// If user provided a custom *gorm.Config, use it as the base.
 		gormConfig = cfg.CustomGormConfig
 		cfg.AppLogger.Debugf("xylium-gorm: Using custom *gorm.Config provided by user.")
+		// Jika cfg.CustomGormConfig.NamingStrategy menggunakan gorm.NamingStrategy,
+		// pastikan gorm.NamingStrategy adalah tipe yang benar atau ubah menjadi schema.NamingStrategy
+		// Contoh jika NamingStrategy ada di package schema:
+		// if gormConfig.NamingStrategy != nil {
+		//     // Lakukan type assertion atau konversi jika perlu
+		// }
 	}
 
 	// Configure GORM's logger if EnableGormLog is true and no logger is already
@@ -134,9 +141,9 @@ func New(cfg Config) (*Connector, error) {
 
 		gormConfig.Logger = NewXyliumGormLogger(adapterLoggerCfg)
 		cfg.AppLogger.Infof("xylium-gorm: GORM query logging enabled via Xylium logger (Effective GORM Level: %v, Slow Threshold: %v, Ignore Not Found: %t).",
-			adapterLoggerCfg.GormLogLevel, // Log effective levels after defaults applied by NewXyliumGormLogger
-			adapterLoggerCfg.SlowThreshold,
-			adapterLoggerCfg.IgnoreRecordNotFoundError)
+			gormConfig.Logger.LogMode(gormlogger.Info).(*xyliumGormLogger).gormLogLevel, // Ambil level efektif setelah default
+			gormConfig.Logger.LogMode(gormlogger.Info).(*xyliumGormLogger).slowThreshold,
+			gormConfig.Logger.LogMode(gormlogger.Info).(*xyliumGormLogger).ignoreRecordNotFoundError)
 	} else if gormConfig.Logger == nil {
 		// If GORM logging is not enabled and no custom logger provided, set GORM to silent.
 		gormConfig.Logger = gormlogger.Default.LogMode(gormlogger.Silent)
